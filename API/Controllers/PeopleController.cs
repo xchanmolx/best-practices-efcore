@@ -1,8 +1,18 @@
+using System.Linq;
 using System.Threading.Tasks;
 using EFDataAccessLibrary.DataAccess;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+
+// Benefits of Entity Framework Core
+// 1. Faster development speed
+// 2. You don't have to know SQL
+
+// Benefits of Dapper
+// 1. Faster in production
+// 2. Easier to work with for SQL developer
+// 3. Design for loose coupling
 
 namespace API.Controllers
 {
@@ -17,14 +27,21 @@ namespace API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult> GetPeople()
+        public object GetPeople()
         {
-            var people = await _db.People
+            var people = _db.People
                 .Include(a => a.Addresses)
                 .Include(e => e.EmailAddresses)
-                .ToListAsync();
+                // .Where(x => ApprovedAge(x.Age)) // don't do this because it will query in sql not in c#
+                .Where(x => x.Age >= 18 && x.Age <= 65) // do this instead
+                .ToList();
 
-            return Ok(people);
+            return people;
+        }
+
+        private bool ApprovedAge(int age)
+        {
+            return (age >= 18 && age <= 65);
         }
     }
 }
